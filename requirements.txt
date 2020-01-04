@@ -1,2 +1,5 @@
-syft[udacity]
+Pillow==6.1
 jupyterlab
+matplotlib
+sklearn
+syft[udacity]
