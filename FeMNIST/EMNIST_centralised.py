@@ -3,51 +3,21 @@ import os
 import numpy as np
 
 import torch
-import torchvision
+import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from torchvision.models.googlenet import GoogLeNet
+# Models
+from models import Net, EMNISTGoogLeNet
 
 # Performance metrics
-from utils import overall_model_performance, class_based_model_performance, CLASSES
+import utils
 
 # For progress bar
 from tqdm.autonotebook import tqdm
-
-# TODO: Move to separate file
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
-        self.conv2 = nn.Conv2d(32, 16, kernel_size=5)
-        self.fc1 = nn.Linear(16 * 4 * 4, 120)
-        self.fc2 = nn.Linear(120, 100)
-        self.fc3 = nn.Linear(100, 62)
-        self.pool = nn.MaxPool2d(2, 2)
-#         self.drop_out = nn.Dropout()
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 4 * 4)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return F.log_softmax(x, dim=1)
-
-class EMNISTGoogLeNet(GoogLeNet):
-    def __init__(self):
-        super(EMNISTGoogLeNet, self).__init__(num_classes=len(CLASSES), aux_logits=False)
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3)
-
-    def forward(self, x):
-        return F.log_softmax(
-            super(EMNISTGoogLeNet, self).forward(x), dim=1
-        )
 
 
 def preprocess_and_load_train_data(data_path, batch_size, shuffle=True, use_val=False, val_split=0.0):
@@ -57,8 +27,8 @@ def preprocess_and_load_train_data(data_path, batch_size, shuffle=True, use_val=
     # Using updated link for dataset: 
     # https://cloudstor.aarnet.edu.au/plus/s/ZNmuFiuQTqZlu9W/download
 
-    dataset = torchvision.datasets.EMNIST(root=data_path, split='byclass', train=True,
-                                        download=True, transform=transform)
+    dataset = datasets.EMNIST(root=data_path, split='byclass', train=True,
+                                download=True, transform=transform)
 
     if use_val:
         # Split data into train and val sets
@@ -85,15 +55,15 @@ def preprocess_and_load_test_data(data_path, batch_size, shuffle=True):
     # Using updated link for dataset: 
     # https://cloudstor.aarnet.edu.au/plus/s/ZNmuFiuQTqZlu9W/download
 
-    dataset = torchvision.datasets.EMNIST(root=data_path, split='byclass', train=False,
-                                        download=True, transform=transform)
+    dataset = datasets.EMNIST(root=data_path, split='byclass', train=False,
+                                download=True, transform=transform)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                           shuffle=shuffle, num_workers=2)
 
     return dataloader
             
 
-def train_model(net, criterion, optimizer, epochs, data_loaders, device):
+def train_model(net, criterion, optimizer, epochs, data_loaders, device, model_path):
     min_val_loss = np.Inf
     epochs_no_improve = 0
     early_stop = False
@@ -142,6 +112,8 @@ def train_model(net, criterion, optimizer, epochs, data_loaders, device):
                 print("Val loss at end of epoch: ", val_loss)
                 if val_loss < min_val_loss:
                     print(f"Validation loss improved from {min_val_loss:.4f} to {val_loss:.4f}")
+                    print("Saving best model...")
+                    utils.save_model(net, optimizer, model_path)
                     epochs_no_improve = 0
                     min_val_loss = val_loss
                 else:
@@ -157,29 +129,12 @@ def train_model(net, criterion, optimizer, epochs, data_loaders, device):
             print("Exiting main training loop")
             break
 
+    if not early_stop:
+        utils.save_model(net, optimizer, model_path)
 
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     print('Finished Training')
-
-
-def save_model(net, optimizer, model_path):
-    torch.save({ 
-                'model_state_dict': net.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                }, model_path)
-
-
-def load_model(net, path):
-    checkpoint = torch.load(path)
-    net.load_state_dict(checkpoint['model_state_dict'])
-
-
-def evaluate_model(net, test_loader, device):
-    net.eval()
-    overall_model_performance(net, test_loader, device)
-    class_based_model_performance(net, test_loader, device)
-    
 
 
 if __name__ == "__main__":
@@ -211,18 +166,16 @@ if __name__ == "__main__":
     optimizer = optim.SGD(net.parameters(), lr=hyperparameters['learning_rate'])
 
     print("Training model...")
+    model_path = 'emnist_centralised_inception.pth'
+
     data_loaders = {'train': train_loader, 'val': val_loader, 'patience': 10}
     train_model(
         net, criterion, optimizer, hyperparameters['epochs'], 
-        data_loaders, device
+        data_loaders, device, model_path
     )
-
-    print("Saving model...")
-    model_path = 'emnist_centralised.pth'
-    save_model(net, optimizer, model_path)
 
     print("Evaluating model...")
     test_loader = preprocess_and_load_test_data(data_path, hyperparameters['batch_size_test'], shuffle=False)
     net = EMNISTGoogLeNet().to(device)
-    load_model(net, model_path)
-    evaluate_model(net, test_loader, device)
+    utils.load_model(net, model_path)
+    utils.evaluate_model(net, test_loader, device)

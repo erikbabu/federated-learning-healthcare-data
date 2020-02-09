@@ -5,6 +5,27 @@ CLASSES += list(map(chr, range(65, 91)))
 CLASSES += list(map(chr, range(97, 123)))
 
 
+def save_model(net, optimizer, model_path):
+    if not model_path:
+        return
+
+    torch.save({ 
+                'model_state_dict': net.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                }, model_path)
+                
+
+def load_model(net, path):
+    checkpoint = torch.load(path)
+    net.load_state_dict(checkpoint['model_state_dict'])
+
+
+def evaluate_model(net, test_loader, device):
+    net.eval()
+    overall_model_performance(net, test_loader, device)
+    class_based_model_performance(net, test_loader, device)
+
+
 def overall_model_performance(net, testloader, device):
     correct = 0
     total = 0
