@@ -8,7 +8,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from utils import overall_model_performance, class_based_model_performance
+from torchvision.models.googlenet import GoogLeNet
+
+from utils import overall_model_performance, class_based_model_performance, CLASSES
+
+from tqdm.autonotebook import tqdm
 
 # TODO: Move to separate file
 class Net(nn.Module):
@@ -31,6 +35,16 @@ class Net(nn.Module):
         x = self.fc3(x)
         return F.log_softmax(x, dim=1)
 
+class EMNISTGoogLeNet(GoogLeNet):
+    def __init__(self):
+        super(EMNISTGoogLeNet, self).__init__(num_classes=len(CLASSES), aux_logits=False)
+        self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3)
+
+    def forward(self, x):
+        return F.log_softmax(
+            super(EMNISTGoogLeNet, self).forward(x), dim=1
+        )
+
 
 def preprocess_and_load_data(data_path, batch_size, train=True, shuffle=True):
     # Convert images to tensors and normalise (implicitly) in range [0, 1]
@@ -48,10 +62,15 @@ def preprocess_and_load_data(data_path, batch_size, train=True, shuffle=True):
             
 
 def train_model(net, criterion, optimizer, epochs, trainloader, device):
-    for epoch in range(epochs):  # loop over the dataset multiple times
+    batches = len(trainloader)
+    for _ in range(epochs):  # loop over the dataset multiple times
 
+        progress = tqdm(enumerate(trainloader), desc="Loss: ", total=batches)
         running_loss = 0.0
-        for i, data in enumerate(trainloader, 0):
+
+        net.train()
+
+        for i, data in progress:
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data[0].to(device), data[1].to(device)
 
@@ -66,11 +85,12 @@ def train_model(net, criterion, optimizer, epochs, trainloader, device):
 
             # print statistics
             running_loss += loss.item()
-            if i % 2000 == 1999:    # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / 2000))
-                running_loss = 0.0
+            
+            # update progress bar
+            progress.set_description("Loss: {:.4f}".format(running_loss/(i + 1)))
 
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     print('Finished Training')
 
 
@@ -114,7 +134,7 @@ if __name__ == "__main__":
     print("Loading and preprocessing data...")
     train_loader = preprocess_and_load_data(data_path, hyperparameters['batch_size_train'])
 
-    net = Net().to(device)
+    net = EMNISTGoogLeNet().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=hyperparameters['learning_rate'])
 
@@ -127,6 +147,6 @@ if __name__ == "__main__":
 
     print("Evaluating model...")
     test_loader = preprocess_and_load_data(data_path, hyperparameters['batch_size_test'], train=False, shuffle=False)
-    net = Net().to(device)
+    net = EMNISTGoogLeNet().to(device)
     load_model(net, model_path)
     evaluate_model(net, test_loader, device)
