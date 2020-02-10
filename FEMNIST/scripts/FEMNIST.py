@@ -185,7 +185,9 @@ if __name__ == "__main__":
     optimizer = optim.SGD(net.parameters(), lr=hyperparameters['learning_rate'])
 
     print("Training model...")
-    model_path = 'femnist_v2.pth'
+    curr_file_path = os.path.dirname(os.path.realpath(__file__))
+    model_name = 'femnist_v2.pth'
+    model_path = os.path.abspath(os.path.join(curr_file_path, '..' , f'saved_models/{model_name}'))
 
     data_loaders = {'train': train_loader, 'val': val_loader, 'patience': 10}
     train_model(
