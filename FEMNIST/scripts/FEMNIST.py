@@ -69,7 +69,9 @@ def preprocess_and_load_test_data(data_path, batch_size, shuffle=True):
     return dataloader
             
 
-def train_model(net, criterion, optimizer, epochs, data_loaders, device, model_path):
+def train_model_iil(net, criterion, optimizer, epochs, data_loaders, device, model_path):
+    """Trains model using institutional incremental learning"""
+
     min_val_loss = np.Inf
     epochs_no_improve = 0
     early_stop = False
@@ -148,6 +150,12 @@ def train_model(net, criterion, optimizer, epochs, data_loaders, device, model_p
     print('Finished Training')
 
 
+def train_model_fedavg(net, criterion, optimizer, epochs, data_loaders, device, model_path):
+    """Trains model using institutional incremental learning"""
+    # TODO: implement
+    pass
+
+
 if __name__ == "__main__":
     # FL configuration
     hook = sy.TorchHook(torch)
@@ -186,11 +194,11 @@ if __name__ == "__main__":
 
     print("Training model...")
     curr_file_path = os.path.dirname(os.path.realpath(__file__))
-    model_name = 'femnist_v2.pth'
+    model_name = 'femnist_v1.pth'
     model_path = os.path.abspath(os.path.join(curr_file_path, '..' , f'saved_models/{model_name}'))
 
     data_loaders = {'train': train_loader, 'val': val_loader, 'patience': 10}
-    train_model(
+    train_model_fedavg(
         net, criterion, optimizer, hyperparameters['epochs'], 
         data_loaders, device, model_path
     )
