@@ -13,7 +13,7 @@ def save_model(net, optimizer, model_path):
                 'model_state_dict': net.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 }, model_path)
-                
+
 
 def load_model(net, path):
     checkpoint = torch.load(path)
