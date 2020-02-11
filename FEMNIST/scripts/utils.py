@@ -5,6 +5,21 @@ CLASSES += list(map(chr, range(65, 91)))
 CLASSES += list(map(chr, range(97, 123)))
 
 
+def dataset_statistics(loader):
+    "Computes and returns mean and standard deviation of dataset"
+    mean = 0.
+    std = 0.
+    for images, _ in loader:
+        batch_samples = images.size(0)
+        images = images.view(batch_samples, images.size(1), -1)
+        mean += images.mean(2).sum(0)
+        std += images.std(2).sum(0)
+
+    mean /= len(loader.dataset)
+    std /= len(loader.dataset)
+    
+    return mean, std
+
 def save_model(net, optimizer, model_path):
     if not model_path:
         return

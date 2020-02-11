@@ -20,8 +20,12 @@ from tqdm.autonotebook import tqdm
 
 
 def preprocess_and_load_train_data(data_path, batch_size, shuffle=True, use_val=False, val_split=0.0):
-    # Convert images to tensors and normalise (implicitly) in range [0, 1]
-    transform = transforms.Compose([transforms.ToTensor()])
+    # Convert images to tensors, after applying random transformations, and normalise
+    transform = transforms.Compose([
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.1745,), (0.3223,))
+    ])
 
     # Using updated link for dataset: 
     # https://cloudstor.aarnet.edu.au/plus/s/ZNmuFiuQTqZlu9W/download
@@ -48,8 +52,11 @@ def preprocess_and_load_train_data(data_path, batch_size, shuffle=True, use_val=
 
 
 def preprocess_and_load_test_data(data_path, batch_size, shuffle=True):
-    # Convert images to tensors and normalise (implicitly) in range [0, 1]
-    transform = transforms.Compose([transforms.ToTensor()])
+    # Convert images to tensors and normalise
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1745,), (0.3223,))
+    ])
 
     # Using updated link for dataset: 
     # https://cloudstor.aarnet.edu.au/plus/s/ZNmuFiuQTqZlu9W/download
