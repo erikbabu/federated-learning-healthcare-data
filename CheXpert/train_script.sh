@@ -5,4 +5,7 @@
 export PATH=/vol/bitbucket/eb1816/individual_project/venv/bin/:$PATH
 source activate
 
-python Chexpert_SOTA/bin/train.py Chexpert_SOTA/config/central.json logdir --num_workers 4 --device_ids "0" --pre_train "Chexpert_SOTA/config/pre_train.pth"
+python Chexpert_SOTA/bin/train.py Chexpert_SOTA/config/central.json logdir --num_workers 4 --device_ids "0" --logtofile True 
+
+# Place below line in invocation to use pre-trained weights
+# --pre_train "Chexpert_SOTA/config/pre_train.pth"
