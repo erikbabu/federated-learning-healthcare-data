@@ -85,7 +85,7 @@ class SAModule(nn.Module):
         conv2_proj = self.conv2(feat_map).view(batch_size, -1, width * height)
 
         relation_map = torch.bmm(conv1_proj, conv2_proj)
-        attention = F.softmax(relation_map, dims=-1)
+        attention = F.softmax(relation_map, dim=-1)
 
         conv3_proj = self.conv3(feat_map).view(batch_size, -1, width * height)
 
