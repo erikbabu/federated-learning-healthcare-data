@@ -1,1 +1,0 @@
-Model trained on 5% of training data (stratified) using randomly initialised weights.
