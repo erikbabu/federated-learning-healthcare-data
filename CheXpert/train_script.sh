@@ -14,3 +14,6 @@ python Chexpert_SOTA/bin/train.py Chexpert_SOTA/config/central.json $1 --num_wor
 
 # Place below line in invocation to use pre-trained weights
 # --pre_train "Chexpert_SOTA/config/pre_train.pth"
+
+# Place below line in invocation to resume training
+# --resume 1
