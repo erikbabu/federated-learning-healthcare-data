@@ -29,19 +29,14 @@ In ```config/``` create a json file and point it to the location of train and de
     - <class 'model.backbone.densenet._Transition'>
     - <class 'torch.nn.modules.container.Sequential'>
     - <class 'model.backbone.densenet.DenseNet'>
-    - <class 'model.global_pool.ExpPool'>
-    - <class 'model.global_pool.LinearPool'>
-    - <class 'model.global_pool.LogSumExpPool'>
-    - <class 'model.global_pool.GlobalPool'>
-    - <class 'torch.nn.modules.activation.Sigmoid'>
+    - <class 'model.classifier.Classifier'>
     - <class 'model.attention_map.CAModule'>
     - <class 'model.attention_map.SAModule'>
     - <class 'model.attention_map.Conv2dNormRelu'>
     - <class 'model.attention_map.FPAModule'>
     - <class 'model.attention_map.AttentionMap'>
-    - <class 'model.classifier.Classifier'>
 
-    This is because these classes are simply wrappers of subclasses, which themselves can be profiled correctly.
+    This is because these classes are simply wrappers of subclasses, which themselves are profiled correctly.
 
 
 # 6. Partition data into different institution CSV files
