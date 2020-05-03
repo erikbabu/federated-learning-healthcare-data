@@ -10,7 +10,7 @@ if [[ $# -eq 0 ]] ; then
     exit 1
 fi
 
-python Chexpert_SOTA/bin/train.py Chexpert_SOTA/config/central.json $1 --num_workers 4 --device_ids "0" --logtofile True
+python Chexpert_SOTA/bin/train.py Chexpert_SOTA/config/config.json $1 --num_workers 4 --device_ids "0" --logtofile True
 
 # Place below line in invocation to use pre-trained weights
 # --pre_train "Chexpert_SOTA/config/pre_train.pth"
