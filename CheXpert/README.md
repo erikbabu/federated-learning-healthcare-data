@@ -9,19 +9,19 @@ Rename folder to Chexpert_SOTA.
 Remove all git artifacts (to bypass lack of root access on lab machines).
 
 # 3. Customise for own file paths and requirements
-In ```config/``` create a json file and point it to the location of train and dev csv files. 
+Create a json file (similar to that in ```config/example.json```) and point it to the location of train and dev csv files. 
 
 # 4a. Run centralised training
-```./train.sh <folder_name>```
+```./train.sh <path/to/config.json> <folder_name>```
 
 ```folder_name``` is where the progress will be saved.
 
 # 4b. Resume centralised training
-```./resume_train.sh <folder_name>```
+```./resume_train.sh <path/to/config.json> <folder_name>```
 
 ```folder_name``` is where the progress from the previous run was stored. 
 
-**Note**: The same folder name must be used between different runs!
+**Note**: The same config file and folder name must be used between different runs!
 
 # 5. Run profiler
 ```python Chexpert_SOTA/bin/performance_profile.py --cfg_path <path/to/cfg.json> --filename <filename>```

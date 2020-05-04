@@ -5,12 +5,12 @@
 export PATH=/vol/bitbucket/eb1816/individual_project/venv/bin/:$PATH
 source activate
 
-if [[ $# -eq 0 ]] ; then
-    echo 'Please specify name of folder to save progress as 1st argument'
+if [[ $# -ne 2 ]] ; then
+    echo "Usage: $0 /path/to/config.json progress_folder_name"
     exit 1
 fi
 
-python Chexpert_SOTA/bin/train.py Chexpert_SOTA/config/config.json $1 --num_workers 4 --device_ids "0" --logtofile True
+python Chexpert_SOTA/bin/train.py $1 $2 --num_workers 4 --device_ids "0" --logtofile True
 
 # Place below line in invocation to use pre-trained weights
 # --pre_train "Chexpert_SOTA/config/pre_train.pth"
