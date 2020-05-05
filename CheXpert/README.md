@@ -23,7 +23,18 @@ Create a json file (similar to that in ```config/example.json```) and point it t
 
 **Note**: The same config file and folder name must be used between different runs!
 
-# 5. Run profiler
+# 5. Profile and evaluate model
+
+A script ```evaluate.sh``` exists to first evaluate the model and then run system profiling. 
+
+Example invocation:
+```./evaluate.sh central_full/ results/100_percent/full/ central_100``` 
+
+Where ```central_full/``` is the location of the folder containing the saved progress of the model being trained, ```results/100_percent/full/``` is the location of the folder to save the generated charts (and also the location of the corresponding config.json file), and ```central_100``` is the prefix to give the auc charts generated. 
+
+To run the profiler separately: 
+
+
 ```python Chexpert_SOTA/bin/performance_profile.py --cfg_path <path/to/cfg.json> --filename <filename>```
 
 **Note:** 
