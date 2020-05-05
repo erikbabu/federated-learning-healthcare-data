@@ -1,9 +1,14 @@
 #!/bin/bash
 #SBATCH --gres=gpu:1
-#SBATCH --mail-type=ALL # required to send email notifcations
-#SBATCH --mail-user=eb1816 # required to send email notifcations - please replace <your_username> with your college login name or email address
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=eb1816
+
 export PATH=/vol/bitbucket/eb1816/individual_project/venv/bin/:$PATH
 source activate
+source source /vol/cuda/10.1.105-cudnn7.6.5.32/setup.sh
+TERM=vt100
+/usr/bin/nvidia-smi
+uptime
 
 if [[ $# -ne 2 ]] ; then
     echo "Usage: $0 /path/to/config.json progress_folder_name"
