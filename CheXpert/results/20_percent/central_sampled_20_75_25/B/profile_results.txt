@@ -1,0 +1,2 @@
+Total MACs: 676.00267T
+Approximate Total FLOPs: 1352.00534T
