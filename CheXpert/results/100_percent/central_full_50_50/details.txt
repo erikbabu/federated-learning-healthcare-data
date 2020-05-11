@@ -1,0 +1,1 @@
+2 models trained on 100% of training data (split 50/50 non-iid) using randomly initialised weights
