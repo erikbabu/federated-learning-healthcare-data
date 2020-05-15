@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH --gres=gpu:1
+#SBATCH --exclude=sicklebill
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=eb1816
 
