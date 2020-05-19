@@ -1,36 +1,36 @@
-# 1. Download CheXpert dataset 
+# Download CheXpert dataset 
 Use link sent in email from Stanford
 
-# 2. Clone repository of current SOTA solution
+# Clone repository of current SOTA solution
 https://github.com/jfhealthcare/Chexpert
 
 Rename folder to Chexpert_SOTA.
 
 Remove all git artifacts (to bypass lack of root access on lab machines).
 
-# 3. Customise for own file paths and requirements
+# Customise for own file paths and requirements
 Create a json file (similar to that in ```config/example.json```) and point it to the location of train and dev csv files. 
 
-# 4a. Run centralised training
+# Run centralised training
 ```./train.sh <path/to/config.json> <folder_name>```
 
 ```folder_name``` is where the progress will be saved.
 
-# 4b. Resume centralised training
+# Resume centralised training
 ```./resume_train.sh <path/to/config.json> <folder_name>```
 
 ```folder_name``` is where the progress from the previous run was stored. 
 
 **Note**: The same config file and folder name must be used between different runs!
 
-# 5. Profile and evaluate model
+# Profile and evaluate centralised model
 
 A script ```evaluate.sh``` exists to first evaluate the model and then run system profiling. 
 
 Example invocation:
-```./evaluate.sh central_full/ results/100_percent/full/ central_100``` 
+```./evaluate.sh central_full/ results/100_percent/full/ central_100 False``` 
 
-Where ```central_full/``` is the location of the folder containing the saved progress of the model being trained, ```results/100_percent/full/``` is the location of the folder to save the generated charts (and also the location of the corresponding config.json file), and ```central_100``` is the prefix to give the auc charts generated. 
+Where ```central_full/``` is the location of the folder containing the saved progress of the model being trained, ```results/100_percent/full/``` is the location of the folder to save the generated charts (and also the location of the corresponding config.json file), ```central_100``` is the prefix to give the auc charts generated, and the final argument specifies whether or not to train using FL. 
 
 To run the profiler separately: 
 
@@ -57,6 +57,17 @@ To run the profiler separately:
     This is because these classes are simply wrappers of subclasses, which themselves are profiled correctly.
 
 
-# 6. Partition data into different institution CSV files
+# Partition data into different institution CSV files
 
 Run the ```quantitative_sampling.ipynb``` notebook in ```notebooks/```. Further instructions found in folder README. 
+
+# Customise for own file paths and requirements for FL
+Create a json file (similar to that in ```config/example_FL.json```) and point it to the location of train and dev csv files.
+
+# Run FL training
+```./train.sh <path/to/config.json> <folder_name> True```
+
+See *Run Centralised training* section for argument descriptions. 
+
+# Resume FL training
+**Not yet implemented**
