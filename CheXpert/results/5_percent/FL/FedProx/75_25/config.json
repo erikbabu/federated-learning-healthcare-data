@@ -1,11 +1,11 @@
 {
-    "fl_technique": "FedAvg",
+    "fl_technique": "FedProx",
     "local_epoch": 2,
     "train_csv": [
-        "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/dummy/A.csv",
-        "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/dummy/B.csv"
+        "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/5_percent/train_subset_5_percent_A_75.csv",
+        "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/5_percent/train_subset_5_percent_B_25.csv"
     ],
-    "train_proportions": [0.5, 0.5],
+    "train_proportions": [0.75, 0.25],
     "dev_csv": "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/test_meta_data/dev.csv",
     "backbone": "densenet121",
     "width": 512,
@@ -27,7 +27,7 @@
     "train_batch_size": 8,
     "dev_batch_size": 8,
     "pretrained": true,
-    "log_every": 2,
+    "log_every": 10,
     "test_every": 100,
     "epoch": 4,
     "norm_type": "BatchNorm",
@@ -43,7 +43,7 @@
     "lr_epochs": [2],
     "momentum": 0.9,
     "weight_decay": 0.0,
-    "best_target": "auc",
+    "best_target": "loss",
     "save_top_k": 1,
     "save_index": [0,1,2,3,4]
 }
