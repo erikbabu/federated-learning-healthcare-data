@@ -600,51 +600,10 @@ def train_epoch_fl(summary, summary_dev, cfg, args, model, dataloader,
                     summary_dev['auc'].mean(),
                     time_spent))
 
-            # for t in range(len(cfg.num_classes)):
-            #     summary_writer.add_scalar(
-            #         'dev/loss_{}'.format(dev_header[t]),
-            #         summary_dev['loss'][t], step_count)
-            #     summary_writer.add_scalar(
-            #         'dev/acc_{}'.format(dev_header[t]), summary_dev['acc'][t],
-            #         step_count)
-            #     summary_writer.add_scalar(
-            #         'dev/auc_{}'.format(dev_header[t]), summary_dev['auc'][t],
-            #         step_count)
-
-            # save_best = False
-            # mean_acc = summary_dev['acc'][cfg.save_index].mean()
-            # if mean_acc >= best_dict['acc_dev_best']:
-            #     best_dict['acc_dev_best'] = mean_acc
-            #     if cfg.best_target == 'acc':
-            #         save_best = True
-
-            # mean_auc = summary_dev['auc'][cfg.save_index].mean()
-            # if mean_auc >= best_dict['auc_dev_best']:
-            #     best_dict['auc_dev_best'] = mean_auc
-            #     if cfg.best_target == 'auc':
-            #         save_best = True
-
-            # mean_loss = summary_dev['loss'][cfg.save_index].mean()
-            # if mean_loss <= best_dict['loss_dev_best']:
-            #     best_dict['loss_dev_best'] = mean_loss
-            #     if cfg.best_target == 'loss':
-            #         save_best = True
-
-            # if save_best:
-            #     logging.info(
-            #         '{}, Best, Step : {}, Loss : {}, Acc : {},Auc :{},'
-            #         'Best Auc : {:.3f}' .format(
-            #             time.strftime("%Y-%m-%d %H:%M:%S"),
-            #             summary['step'],
-            #             loss_dev_str,
-            #             acc_dev_str,
-            #             auc_dev_str,
-            #             best_dict['auc_dev_best']))
             summary_dev['auc'] = np.array([])
 
         model.train()
         torch.set_grad_enabled(True)
-    # summary['epoch'] += 1
 
     return summary, best_dict
 
@@ -676,7 +635,7 @@ def run_fl(args):
     device = torch.device('cuda:{}'.format(device_ids[0]))
 
     # initialise global model
-    model = Classifier(cfg)
+    model = Classifier(cfg).to(device).train()
 
     if args.verbose is True:
         from torchsummary import summary
@@ -685,11 +644,11 @@ def run_fl(args):
         else:
             h, w = cfg.height, cfg.width
         summary(model.to(device), (3, h, w))
-    model = DataParallel(model, device_ids=device_ids).to(device).train()
+
     if args.pre_train is not None:
         if os.path.exists(args.pre_train):
             ckpt = torch.load(args.pre_train, map_location=device)
-            model.module.load_state_dict(ckpt)
+            model.load_state_dict(ckpt)
 
     src_folder = os.path.dirname(os.path.abspath(__file__)) + '/../'
     dst_folder = os.path.join(args.save_path, 'classification')
@@ -772,9 +731,9 @@ def run_fl(args):
             ))
 
             # Load previous current global model as start point
-            model = Classifier(cfg)
-            model = DataParallel(model, device_ids=device_ids).to(device).train()
-            model.module.load_state_dict(w_global, strict=False)
+            model = Classifier(cfg).to(device).train()
+            
+            model.load_state_dict(w_global)
             
             optimizer = get_optimizer(model.parameters(), cfg)
 
@@ -792,7 +751,6 @@ def run_fl(args):
 
                 summary_train['step'] += 1
    
-
             bytes_to_upload = sys.getsizeof(model.state_dict())
             clients[client]['bytes_uploaded'] += bytes_to_upload
             logging.info('{}, Completed local rounds for client {} in communication round {}. '
@@ -813,11 +771,14 @@ def run_fl(args):
             w_global = fed_avg(w_locals)
         elif cfg.fl_technique == 'WFedAvg':
             w_global = weighted_fed_avg(w_locals, cfg.train_proportions)
+        elif cfg.fl_technique == 'FedProx':
+            # Use weighted FedAvg when using FedProx
+            w_global = weighted_fed_avg(w_locals, cfg.train_proportions)
+
                 
         # Test the performance of the averaged model
-        avged_model = Classifier(cfg)
-        avged_model = DataParallel(model, device_ids=device_ids).to(device).train()
-        avged_model.load_state_dict(w_global, strict=False)
+        avged_model = Classifier(cfg).to(device)
+        avged_model.load_state_dict(w_global)
 
         time_now = time.time()
         summary_dev, predlist, true_list = test_epoch(
@@ -832,14 +793,14 @@ def run_fl(args):
                 y_true, y_pred, pos_label=1)
             auc = metrics.auc(fpr, tpr)
             auclist.append(auc)
-        summary_dev['auc'] = np.array(auclist)
+        auc_summary = np.array(auclist)
 
         loss_dev_str = ' '.join(map(lambda x: '{:.5f}'.format(x),
                                     summary_dev['loss']))
         acc_dev_str = ' '.join(map(lambda x: '{:.3f}'.format(x),
                                 summary_dev['acc']))
         auc_dev_str = ' '.join(map(lambda x: '{:.3f}'.format(x),
-                                summary_dev['auc']))
+                                auc_summary))
 
         logging.info(
             '{}, Averaged Model -> Dev, Step : {}, Loss : {}, Acc : {}, Auc : {},'
@@ -849,7 +810,7 @@ def run_fl(args):
                 loss_dev_str,
                 acc_dev_str,
                 auc_dev_str,
-                summary_dev['auc'].mean(),
+                auc_summary.mean(),
                 time_spent))
 
         for t in range(len(cfg.num_classes)):
@@ -860,7 +821,7 @@ def run_fl(args):
                 'dev/acc_{}'.format(dev_header[t]), summary_dev['acc'][t],
                 summary_train['step'])
             summary_writer.add_scalar(
-                'dev/auc_{}'.format(dev_header[t]), summary_dev['auc'][t],
+                'dev/auc_{}'.format(dev_header[t]), auc_summary[t],
                 summary_train['step'])
 
         save_best = False
@@ -871,7 +832,7 @@ def run_fl(args):
             if cfg.best_target == 'acc':
                 save_best = True
 
-        mean_auc = summary_dev['auc'][cfg.save_index].mean()
+        mean_auc = auc_summary[cfg.save_index].mean()
         if mean_auc >= best_dict['auc_dev_best']:
             best_dict['auc_dev_best'] = mean_auc
             if cfg.best_target == 'auc':
@@ -890,10 +851,12 @@ def run_fl(args):
                 'acc_dev_best': best_dict['acc_dev_best'],
                 'auc_dev_best': best_dict['auc_dev_best'],
                 'loss_dev_best': best_dict['loss_dev_best'],
-                'state_dict': avged_model.module.state_dict()},
+                'state_dict': avged_model.state_dict()},
                 os.path.join(args.save_path,
                             'best{}.ckpt'.format(best_dict['best_idx']))
             )
+
+
             best_dict['best_idx'] += 1
             if best_dict['best_idx'] > cfg.save_top_k:
                 best_dict['best_idx'] = 1
@@ -911,7 +874,7 @@ def run_fl(args):
                     'acc_dev_best': best_dict['acc_dev_best'],
                     'auc_dev_best': best_dict['auc_dev_best'],
                     'loss_dev_best': best_dict['loss_dev_best'],
-                    'state_dict': avged_model.module.state_dict()},
+                    'state_dict': avged_model.state_dict()},
                 os.path.join(args.save_path, 'train.ckpt'))
 
 

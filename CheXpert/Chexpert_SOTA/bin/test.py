@@ -100,17 +100,18 @@ def run(args):
             '#available gpu : {} < --device_ids : {}'
             .format(num_devices, len(device_ids)))
     device = torch.device('cuda:{}'.format(device_ids[0]))
+    
 
-    model = Classifier(cfg)
-    model = DataParallel(model, device_ids=device_ids).to(device).eval()
     ckpt_path = os.path.join(args.model_path, 'best.ckpt')
     ckpt = torch.load(ckpt_path, map_location=device)
-    
-    if args.fl == 'True':
-        model.module.load_state_dict(ckpt['state_dict'], strict=False)
-    else:
-        model.module.load_state_dict(ckpt['state_dict'])
 
+    if args.fl == 'True':
+        model = Classifier(cfg).to(device).eval()
+        model.load_state_dict(ckpt['state_dict'])
+    else:
+        model = Classifier(cfg)
+        model = DataParallel(model, device_ids=device_ids).to(device).eval()
+        model.module.load_state_dict(ckpt['state_dict'])
 
     dataloader_test = DataLoader(
         ImageDataset(args.in_csv_path, cfg, mode='test'),
