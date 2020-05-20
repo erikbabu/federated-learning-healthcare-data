@@ -2,8 +2,8 @@
 export PATH=/vol/bitbucket/eb1816/individual_project/venv/bin/:$PATH
 source activate
 
-if [[ $# -ne 3 ]] ; then
-    echo "Usage: $0 path/to/progress/folder path/to/results/folder result_prefixes"
+if [[ $# -ne 4 ]] ; then
+    echo "Usage: $0 path/to/progress/folder path/to/results/folder result_prefixes <use_fl>"
     exit 1
 fi
 
@@ -18,7 +18,7 @@ if [ -d "$1" ] && [ -d "$2" ]; then
 
     # Perform evaluation
     echo "Running model evaluation..."
-    python classification/bin/test.py
+    python classification/bin/test.py --fl $4
     python classification/bin/roc.py $3
     echo "Completed model evaluation"
 
@@ -32,7 +32,7 @@ if [ -d "$1" ] && [ -d "$2" ]; then
     rm "$1/best.ckpt"
 
     # Run performance profile
-    python Chexpert_SOTA/bin/performance_profile.py --cfg_path "$2/config.json" --file_name "$2/profile_results.txt"
+    python Chexpert_SOTA/bin/performance_profile.py --cfg_path "$2/config.json" --file_name "$2/profile_results"
 else
     echo "One or more arguments passed are not valid directories";
     exit 1

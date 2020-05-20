@@ -12,9 +12,9 @@ Remove all git artifacts (to bypass lack of root access on lab machines).
 Create a json file (similar to that in ```config/example.json```) and point it to the location of train and dev csv files. 
 
 # Run centralised training
-```./train.sh <path/to/config.json> <folder_name>```
+```./train.sh <path/to/config.json> <folder_name> False```
 
-```folder_name``` is where the progress will be saved.
+```folder_name``` is where the progress will be saved, the final argument specifies whether or not to train the model using FL. 
 
 # Resume centralised training
 ```./resume_train.sh <path/to/config.json> <folder_name>```
@@ -23,14 +23,36 @@ Create a json file (similar to that in ```config/example.json```) and point it t
 
 **Note**: The same config file and folder name must be used between different runs!
 
-# Profile and evaluate centralised model
+# Partition data into different institution CSV files
+
+Run the ```quantitative_sampling.ipynb``` notebook in ```notebooks/```. Further instructions found in folder README. 
+
+# Customise for own file paths and requirements for FL
+Create a json file (similar to that in ```config/example_FL.json```) and point it to the location of train and dev csv files.
+
+The difference between this and the centralised json config files are: 
+
+* The inclusion of the fl_technique field. Choose from "FedAvg", "WFedAvg" and "FedProx"
+* The inclusion of the local_epoch field. The original epoch field is kept for backwards compatibility and will now represent the number of communication rounds.
+* The train_csv folder is now a list of file paths representing the train files for the different institutions.
+* The inclusion of a train_proportions field, representing the splits of data.
+
+# Run FL training
+```./train.sh <path/to/config.json> <folder_name> True```
+
+See *Run Centralised training* section for argument descriptions. 
+
+# Resume FL training
+**Not yet implemented**
+
+# Profile and evaluate models
 
 A script ```evaluate.sh``` exists to first evaluate the model and then run system profiling. 
 
 Example invocation:
 ```./evaluate.sh central_full/ results/100_percent/full/ central_100 False``` 
 
-Where ```central_full/``` is the location of the folder containing the saved progress of the model being trained, ```results/100_percent/full/``` is the location of the folder to save the generated charts (and also the location of the corresponding config.json file), ```central_100``` is the prefix to give the auc charts generated, and the final argument specifies whether or not to train using FL. 
+Where ```central_full/``` is the location of the folder containing the saved progress of the model being trained, ```results/100_percent/full/``` is the location of the folder to save the generated charts (and also the location of the corresponding config.json file), ```central_100``` is the prefix to give the auc charts generated, and the final argument specifies whether or not to evaluate a model trained using FL. 
 
 To run the profiler separately: 
 
@@ -40,7 +62,8 @@ To run the profiler separately:
 **Note:** 
 
 - Default filename is ```profile_results.txt```.
-- Disregard the following warnings from the profiler for the following classes:
+- It will create a ```profile_results.txt``` file for every client if evaluating a model trained using FL.
+- Disregard the following wavrnings from the profiler for the following classes:
 
     - <class 'model.backbone.densenet._DenseLayer'>
     - <class 'model.backbone.densenet._DenseBlock'>
@@ -55,19 +78,3 @@ To run the profiler separately:
     - <class 'model.attention_map.AttentionMap'>
 
     This is because these classes are simply wrappers of subclasses, which themselves are profiled correctly.
-
-
-# Partition data into different institution CSV files
-
-Run the ```quantitative_sampling.ipynb``` notebook in ```notebooks/```. Further instructions found in folder README. 
-
-# Customise for own file paths and requirements for FL
-Create a json file (similar to that in ```config/example_FL.json```) and point it to the location of train and dev csv files.
-
-# Run FL training
-```./train.sh <path/to/config.json> <folder_name> True```
-
-See *Run Centralised training* section for argument descriptions. 
-
-# Resume FL training
-**Not yet implemented**

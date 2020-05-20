@@ -29,6 +29,8 @@ parser.add_argument('--num_workers', default=8, type=int, help="Number of "
                     "workers for each data loader")
 parser.add_argument('--device_ids', default='0', type=str, help="GPU indices "
                     "comma separated, e.g. '0,1' ")
+parser.add_argument('--fl', default="False", type=str, help="Evaluate model trained using FL if set True")
+
 
 if not os.path.exists('test'):
     os.mkdir('test')
@@ -103,7 +105,12 @@ def run(args):
     model = DataParallel(model, device_ids=device_ids).to(device).eval()
     ckpt_path = os.path.join(args.model_path, 'best.ckpt')
     ckpt = torch.load(ckpt_path, map_location=device)
-    model.module.load_state_dict(ckpt['state_dict'])
+    
+    if args.fl == 'True':
+        model.module.load_state_dict(ckpt['state_dict'], strict=False)
+    else:
+        model.module.load_state_dict(ckpt['state_dict'])
+
 
     dataloader_test = DataLoader(
         ImageDataset(args.in_csv_path, cfg, mode='test'),

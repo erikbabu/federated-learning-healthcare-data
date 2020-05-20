@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 import json
+import string
 from easydict import EasyDict as edict
 
 from thop import profile, clever_format
@@ -18,7 +19,7 @@ from model.classifier import Classifier
 parser = argparse.ArgumentParser(description='Profile model FLOPS/MACS')
 parser.add_argument('--cfg_path', required=True, metavar='CFG_PATH', type=str,
                     help="Path to the config file in yaml format")
-parser.add_argument('--file_name', default='profile_results.txt', type=str, help="Name of file to save results to")
+parser.add_argument('--file_name', default='profile_results', type=str, help="Name of file to save results to")
 
 
 def count_exp_pool(m, x, y):
@@ -87,16 +88,11 @@ def count_sig(m, x, y):
     m.total_ops += torch.DoubleTensor([int(total_ops)])
 
 
-if __name__ == '__main__':
-    args = parser.parse_args()
-    
-    with open(args.cfg_path) as f:
-        cfg = edict(json.load(f))
-    
+def profile_model(cfg, train_file, save_prefix, use_fl):
     model = Classifier(cfg)    
     
     dataloader_train = DataLoader(
-                                    ImageDataset(cfg.train_csv, cfg, mode='train'),
+                                    ImageDataset(train_file, cfg, mode='train'),
                                     batch_size=cfg.train_batch_size, num_workers=4,
                                     drop_last=True, shuffle=False
                                  )
@@ -116,8 +112,13 @@ if __name__ == '__main__':
             break
 
     steps = len(dataloader_train)
-    epochs = cfg.epoch
-    total_batches = steps * epochs
+    if use_fl:
+        comm_rounds = cfg.epoch
+        epochs = cfg.local_epoch
+        total_batches = steps * epochs * comm_rounds
+    else:
+        epochs = cfg.epoch
+        total_batches = steps * epochs
     
     # When comparing MACs /FLOPs, we want the number to be implementation-agnostic and as general as possible. 
     # The THOP library therefore only considers the number of multiplications and ignore all other operations.
@@ -131,6 +132,28 @@ if __name__ == '__main__':
     print(f"Approximate Total FLOPs: {total_flops_approx_formatted}")
 
     # Save results to file
-    with open(args.file_name, "w") as f:
+    with open(save_prefix, "w") as f:
         f.write(f"Total MACs: {total_macs_formatted}\n")
         f.write(f"Approximate Total FLOPs: {total_flops_approx_formatted}")
+
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    
+    with open(args.cfg_path) as f:
+        cfg = edict(json.load(f))
+
+    save_prefix = args.file_name
+
+    if isinstance(cfg.train_csv, list):
+        # Using FL so generate profile on each train file
+        clients = []
+        for i, c in enumerate(string.ascii_uppercase):
+            if i < len(cfg.train_csv):
+                clients.append(c)
+            
+        for i, train_file in enumerate(cfg.train_csv):
+            profile_model(cfg, train_file, f'{save_prefix}_{clients[i]}.txt', True)
+    else:
+        # Evaluating model trained centrally
+        profile_model(cfg, cfg.train_csv, f'{save_prefix}.txt', False)
