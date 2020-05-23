@@ -1,0 +1,1 @@
+10 models trained on 100% of training data (split 10/10/10/10/10/10/10/10/10/10 non-iid) using randomly initialised weights

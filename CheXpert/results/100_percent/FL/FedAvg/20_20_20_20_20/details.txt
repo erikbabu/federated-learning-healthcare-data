@@ -1,0 +1,1 @@
+FL Model (FedAvg) trained on 100% of training data (split 20/20/20/20/20 non-iid) using randomly initialised weights
