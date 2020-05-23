@@ -1,6 +1,6 @@
 # Launch jupyter notebook from lab machine
 
-1. ssh into lab machine (e.g. ray04)
+1. ssh into lab machine (e.g. ray04) and activate project virtual environment
 
 2. run ```jupyter-lab --no-browser --port=8888```
 
