@@ -1,6 +1,6 @@
 {
     "fl_technique": "FedAvg",
-    "local_epoch": 4,
+    "local_epoch": 3,
     "train_csv": [
         "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/100_percent/train_subset_100_percent_A_10.csv",
         "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/100_percent/train_subset_100_percent_B_10.csv",
