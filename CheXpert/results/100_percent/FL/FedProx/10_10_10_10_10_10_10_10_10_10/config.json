@@ -14,6 +14,7 @@
         "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/100_percent/train_subset_100_percent_J_10.csv"
     ],
     "train_proportions": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+    "mu": 0.001,
     "dev_csv": "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/test_meta_data/dev.csv",
     "backbone": "densenet121",
     "width": 512,
