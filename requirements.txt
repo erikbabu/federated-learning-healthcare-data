@@ -87,6 +87,7 @@ testpath==0.4.4
 tf-encrypted==0.5.9
 thop==0.0.31.post2004101309
 torch==1.4.0
+torchsummary==1.5.1
 torchvision==0.5.0
 tornado==6.0.3
 tqdm==4.42.1
