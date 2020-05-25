@@ -36,6 +36,7 @@ The difference between this and the centralised json config files are:
 * The inclusion of the local_epoch field. The original epoch field is kept for backwards compatibility and will now represent the number of communication rounds.
 * The train_csv folder is now a list of file paths representing the train files for the different institutions.
 * The inclusion of a train_proportions field, representing the splits of data.
+* The inclusion of a mu field, representing the mu value to use in FedProx (not necessary to add if not using FedProx).
 
 # Run FL training
 ```./train.sh <path/to/config.json> <folder_name> True```

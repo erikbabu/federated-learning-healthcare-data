@@ -501,9 +501,25 @@ def weighted_fed_avg(weights, factors):
             w_avg[k] += torch.mul(weights[i][k], factors[i])
     return w_avg
 
+
+def get_global_weights(model, device):
+    param_vals = []
+    for param_index, (name, param) in enumerate(model.named_parameters()):
+        param_vals.append(param.cpu().detach().numpy())
+
+    global_weight_collector = []
+    for param_idx, (key_name, param) in enumerate(model.state_dict().items()):
+        try:
+            global_weight_collector.append(torch.from_numpy(param_vals[param_idx]).to(device))
+        except:
+            break
+
+    return global_weight_collector
+
+
 def train_epoch_fl(summary, summary_dev, cfg, args, model, dataloader,
                    dataloader_dev, optimizer, summary_writer, best_dict,
-                   dev_header, epoch):
+                   dev_header, epoch, global_weight_collector):
     torch.set_grad_enabled(True)
     model.train()
     device_ids = list(map(int, args.device_ids.split(',')))
@@ -529,6 +545,13 @@ def train_epoch_fl(summary, summary_dev, cfg, args, model, dataloader,
         loss = 0
         for t in range(num_tasks):
             loss_t, acc_t = get_loss(output, target, t, device, cfg)
+            
+            if cfg.fl_technique == 'FedProx':
+                fed_prox_reg = 0.0
+                for param_index, param in enumerate(model.parameters()):
+                    fed_prox_reg += ((cfg.mu / 2) * torch.norm((param - global_weight_collector[param_index]))**2)
+                loss_t += fed_prox_reg
+
             loss += loss_t
             loss_sum[t] += loss_t.item()
             acc_sum[t] += acc_t.item()
@@ -734,6 +757,11 @@ def run_fl(args):
             model = Classifier(cfg).to(device).train()
             
             model.load_state_dict(w_global)
+
+            if cfg.fl_technique == "FedProx":
+                global_weight_collector = get_global_weights(model, device)
+            else:
+                global_weight_collector = None
             
             optimizer = get_optimizer(model.parameters(), cfg)
 
@@ -747,7 +775,7 @@ def run_fl(args):
                 summary_train, best_dict = train_epoch_fl(
                     summary_train, summary_dev, cfg, args, model,
                     clients[client]['dataloader_train'], dataloader_dev, optimizer,
-                    summary_writer, best_dict, dev_header, epoch)
+                    summary_writer, best_dict, dev_header, epoch, global_weight_collector)
 
                 summary_train['step'] += 1
    

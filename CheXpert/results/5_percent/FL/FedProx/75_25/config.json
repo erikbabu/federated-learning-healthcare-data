@@ -6,6 +6,7 @@
         "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/5_percent/train_subset_5_percent_B_25.csv"
     ],
     "train_proportions": [0.75, 0.25],
+    "mu": 0.001,
     "dev_csv": "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/test_meta_data/dev.csv",
     "backbone": "densenet121",
     "width": 512,

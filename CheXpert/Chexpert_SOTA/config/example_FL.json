@@ -1,11 +1,12 @@
 {
-    "fl_technique": "FedAvg",
+    "fl_technique": "FedProx",
     "local_epoch": 2,
     "train_csv": [
         "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/dummy/A.csv",
         "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/train_meta_data/dummy/B.csv"
     ],
     "train_proportions": [0.5, 0.5],
+    "mu": 0.001,
     "dev_csv": "/vol/bitbucket/eb1816/individual_project/federated-learning-healthcare-data/CheXpert/Chexpert_SOTA/config/test_meta_data/dev.csv",
     "backbone": "densenet121",
     "width": 512,
