@@ -1,12 +1,8 @@
 # Download CheXpert dataset 
 Use link sent in email from Stanford
 
-# Clone repository of current SOTA solution
-https://github.com/jfhealthcare/Chexpert
-
-Rename folder to Chexpert_SOTA.
-
-Remove all git artifacts (to bypass lack of root access on lab machines).
+# Clone repository
+The majority of the model code is sourced from this repository: https://github.com/jfhealthcare/Chexpert. We adapt it to perform Federated Learning and track computational and communication overhead during the model training phase. 
 
 # Customise for own file paths and requirements
 Create a json file (similar to that in ```config/example.json```) and point it to the location of train and dev csv files. 
